@@ -1,23 +1,47 @@
 use reqwest::{header::HeaderMap, header::USER_AGENT, Client, Response};
 
+#[derive(Debug)]
+enum RusTurengError {
+    Reqwest(reqwest::Error),
+    ResponseNotOk(Response),
+}
+
+impl From<reqwest::Error> for RusTurengError {
+    fn from(err: reqwest::Error) -> Self {
+        RusTurengError::Reqwest(err)
+    }
+}
+
+impl From<Response> for RusTurengError {
+    fn from(resp: Response) -> Self {
+        RusTurengError::ResponseNotOk(resp)
+    }
+}
+
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
+async fn main() -> Result<(), RusTurengError> {
     let url: String = format!("{}{}", BASE_URL, WORD);
     let mut header_map: HeaderMap = HeaderMap::new();
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
-    let response: Response = get_response(&url, header_map).await?;
-    println!("Status: {:#?}", response.status());
+    let content = get_content(&url, header_map).await?;
+    println!("Lenght: {:#?}", content.len());
     Ok(())
 }
 
-async fn get_response(
+async fn get_content(
     url: &str,
     header_map: reqwest::header::HeaderMap,
-) -> Result<reqwest::Response, reqwest::Error> {
-    Client::new().get(url).headers(header_map).send().await
+) -> Result<String, RusTurengError> {
+    let response = Client::new().get(url).headers(header_map).send().await?;
+    if response.status().is_success() {
+        let content = response.text().await?;
+        Ok(content)
+    } else {
+        Err(RusTurengError::ResponseNotOk(response))
+    }
 }
