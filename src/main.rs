@@ -1,22 +1,7 @@
 use reqwest::{header::HeaderMap, header::USER_AGENT, Client, Response};
+mod err;
 
-#[derive(Debug)]
-enum RusTurengError {
-    Reqwest(reqwest::Error),
-    ResponseNotOk(Response),
-}
-
-impl From<reqwest::Error> for RusTurengError {
-    fn from(err: reqwest::Error) -> Self {
-        RusTurengError::Reqwest(err)
-    }
-}
-
-impl From<Response> for RusTurengError {
-    fn from(resp: Response) -> Self {
-        RusTurengError::ResponseNotOk(resp)
-    }
-}
+use err::RusTurengError;
 
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
