@@ -1,7 +1,8 @@
-use reqwest::{header::HeaderMap, header::USER_AGENT, Client, Response};
 mod err;
 
 use err::RusTurengError;
+use reqwest::{header::HeaderMap, header::USER_AGENT, Client};
+use std::io::Write;
 
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
@@ -14,8 +15,15 @@ async fn main() -> Result<(), RusTurengError> {
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
     let content = get_content(&url, header_map).await?;
-    println!("Lenght: {:#?}", content.len());
+    println!("Length: {:#?}", content.len());
+    save_string_to_file("content.html", &content);
+
     Ok(())
+}
+
+fn save_string_to_file(file_name: &str, content: &str) {
+    let mut file = std::fs::File::create(file_name).unwrap();
+    file.write_all(content.as_bytes()).unwrap();
 }
 
 async fn get_content(
