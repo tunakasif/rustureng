@@ -2,6 +2,7 @@ mod err;
 
 use err::RusTurengError;
 use reqwest::{header::HeaderMap, header::USER_AGENT, Client};
+use scraper::{Html, Selector};
 use std::io::Write;
 
 const WORD: &str = "telefon";
@@ -15,8 +16,18 @@ async fn main() -> Result<(), RusTurengError> {
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
     let content = get_content(&url, header_map).await?;
-    println!("Length: {:#?}", content.len());
     save_string_to_file("content.html", &content);
+
+    let document = Html::parse_document(&content);
+    let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
+
+    for (i, elem) in document.select(&selector).enumerate() {
+        if i == 10 {
+            break;
+        } else if i % 2 == 1 {
+            println!("{}", elem.text().collect::<Vec<_>>().join(","));
+        }
+    }
 
     Ok(())
 }
