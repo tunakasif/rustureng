@@ -17,8 +17,13 @@ async fn main() -> Result<(), RusTurengError> {
 
     let content = get_content(&url, header_map).await?;
     save_string_to_file("content.html", &content);
+    parse_html_content(&content);
 
-    let document = Html::parse_document(&content);
+    Ok(())
+}
+
+fn parse_html_content(content: &str) {
+    let document = Html::parse_document(content);
     let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
 
     for (i, elem) in document.select(&selector).enumerate() {
@@ -28,8 +33,6 @@ async fn main() -> Result<(), RusTurengError> {
             println!("{}", elem.text().collect::<Vec<_>>().join(","));
         }
     }
-
-    Ok(())
 }
 
 fn save_string_to_file(file_name: &str, content: &str) {
