@@ -9,6 +9,13 @@ const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
 
+#[derive(Debug)]
+enum TranslationResult {
+    Valid,
+    Suggestions,
+    TermNotFound,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), RusTurengError> {
     let url: String = format!("{}{}", BASE_URL, WORD);
@@ -17,21 +24,31 @@ async fn main() -> Result<(), RusTurengError> {
 
     let content = get_content(&url, header_map).await?;
     save_string_to_file("content.html", &content);
-    parse_html_content(&content);
+    let trans_result = parse_html_content(&content);
+    println!("{:#?}", trans_result);
 
     Ok(())
 }
 
-fn parse_html_content(content: &str) {
+fn parse_html_content(content: &str) -> TranslationResult {
     let document = Html::parse_document(content);
-    let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
+    let table_selector = Selector::parse("table").unwrap();
+    let h1_selector = Selector::parse("h1").unwrap();
 
-    for (i, elem) in document.select(&selector).enumerate() {
-        if i == 10 {
-            break;
-        } else if i % 2 == 1 {
-            println!("{}", elem.text().collect::<Vec<_>>().join(","));
+    let tables = document.select(&table_selector);
+
+    match tables.count() {
+        0 => {
+            let term_not_found_h1_exists = document.select(&h1_selector).any(|h1| {
+                "term not found" == h1.text().collect::<Vec<_>>().join("").trim().to_lowercase()
+            });
+
+            match term_not_found_h1_exists {
+                true => TranslationResult::TermNotFound,
+                _ => TranslationResult::Suggestions,
+            }
         }
+        _ => TranslationResult::Valid,
     }
 }
 
