@@ -12,7 +12,7 @@ const MY_USER_AGENT: &str = "MyAgent";
 #[derive(Debug)]
 enum TranslationResult {
     Valid,
-    Suggestions,
+    Suggestions(Vec<String>),
     TermNotFound,
 }
 
@@ -45,11 +45,19 @@ fn parse_html_content(content: &str) -> TranslationResult {
 
             match term_not_found_h1_exists {
                 true => TranslationResult::TermNotFound,
-                _ => TranslationResult::Suggestions,
+                _ => TranslationResult::Suggestions(get_suggestions(&document)),
             }
         }
         _ => TranslationResult::Valid,
     }
+}
+
+fn get_suggestions(document: &Html) -> Vec<String> {
+    let selector = Selector::parse("ul.suggestion-list > li > a").unwrap();
+    document
+        .select(&selector)
+        .map(|li| li.text().collect::<Vec<_>>().join(""))
+        .collect::<Vec<_>>()
 }
 
 fn save_string_to_file(file_name: &str, content: &str) {
