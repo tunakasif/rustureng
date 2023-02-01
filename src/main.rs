@@ -18,14 +18,14 @@ enum TranslationResult {
 
 #[tokio::main]
 async fn main() -> Result<(), RusTurengError> {
-    let url: String = format!("{}{}", BASE_URL, WORD);
+    let url: String = format!("{BASE_URL}{WORD}");
     let mut header_map: HeaderMap = HeaderMap::new();
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
     let content = get_content(&url, header_map).await?;
     save_string_to_file("content.html", &content);
     let trans_result = parse_html_content(&content);
-    println!("{:#?}", trans_result);
+    println!("{trans_result:#?}");
 
     Ok(())
 }
