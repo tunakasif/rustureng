@@ -8,6 +8,7 @@ use std::io::Write;
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
+const WRITE_TO_FILE: bool = false;
 
 #[derive(Debug)]
 enum TranslationResult {
@@ -23,7 +24,9 @@ async fn main() -> Result<(), RusTurengError> {
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
     let content = get_content(&url, header_map).await?;
-    save_string_to_file("content.html", &content);
+    if WRITE_TO_FILE {
+        save_string_to_file("content.html", &content);
+    }
     let trans_result = parse_html_content(&content);
     println!("{trans_result:#?}");
 
