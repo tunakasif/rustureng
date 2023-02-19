@@ -3,12 +3,13 @@ mod err;
 use err::RusTurengError;
 use reqwest::{header::HeaderMap, header::USER_AGENT, Client};
 use scraper::{Html, Selector};
+use std::env;
 use std::io::Write;
 
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
-const WRITE_TO_FILE: bool = true;
+const WRITE_TO_FILE: bool = false;
 
 #[derive(Debug)]
 enum TranslationResult {
@@ -19,7 +20,13 @@ enum TranslationResult {
 
 #[tokio::main]
 async fn main() -> Result<(), RusTurengError> {
-    let url: String = format!("{BASE_URL}{WORD}");
+    let args: Vec<String> = env::args().collect();
+    let search_term = match args.len() {
+        1 => WORD.to_string(),
+        _ => args[1..].join(" "),
+    };
+
+    let url: String = format!("{BASE_URL}{search_term}");
     let mut header_map: HeaderMap = HeaderMap::new();
     header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
 
