@@ -8,7 +8,7 @@ use std::io::Write;
 const WORD: &str = "telefon";
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
-const WRITE_TO_FILE: bool = false;
+const WRITE_TO_FILE: bool = true;
 
 #[derive(Debug)]
 enum TranslationResult {
@@ -25,15 +25,14 @@ async fn main() -> Result<(), RusTurengError> {
 
     let content = get_content(&url, header_map).await?;
     if WRITE_TO_FILE {
-        save_string_to_file("content.html", &content);
+        save_string_to_file("content.html", &content).await;
     }
-    let trans_result = parse_html_content(&content);
+    let trans_result = parse_html_content(&content).await;
     println!("{trans_result:#?}");
-
     Ok(())
 }
 
-fn parse_html_content(content: &str) -> TranslationResult {
+async fn parse_html_content(content: &str) -> TranslationResult {
     let document = Html::parse_document(content);
     let table_selector = Selector::parse("table").unwrap();
     let h1_selector = Selector::parse("h1").unwrap();
@@ -48,14 +47,14 @@ fn parse_html_content(content: &str) -> TranslationResult {
 
             match term_not_found_h1_exists {
                 true => TranslationResult::TermNotFound,
-                _ => TranslationResult::Suggestions(get_suggestions(&document)),
+                _ => TranslationResult::Suggestions(get_suggestions(&document).await),
             }
         }
-        _ => TranslationResult::Valid(get_results(&document)),
+        _ => TranslationResult::Valid(get_results(&document).await),
     }
 }
 
-fn get_results(document: &Html) -> Vec<String> {
+async fn get_results(document: &Html) -> Vec<String> {
     let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
     let entries = document.select(&selector);
     entries
@@ -67,7 +66,7 @@ fn get_results(document: &Html) -> Vec<String> {
         .collect()
 }
 
-fn get_suggestions(document: &Html) -> Vec<String> {
+async fn get_suggestions(document: &Html) -> Vec<String> {
     let selector = Selector::parse("ul.suggestion-list > li > a").unwrap();
     document
         .select(&selector)
@@ -75,7 +74,7 @@ fn get_suggestions(document: &Html) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn save_string_to_file(file_name: &str, content: &str) {
+async fn save_string_to_file(file_name: &str, content: &str) {
     let mut file = std::fs::File::create(file_name).unwrap();
     file.write_all(content.as_bytes()).unwrap();
 }
