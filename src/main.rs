@@ -12,7 +12,7 @@ const WRITE_TO_FILE: bool = false;
 
 #[derive(Debug)]
 enum TranslationResult {
-    Valid,
+    Valid(Vec<String>),
     Suggestions(Vec<String>),
     TermNotFound,
 }
@@ -51,8 +51,20 @@ fn parse_html_content(content: &str) -> TranslationResult {
                 _ => TranslationResult::Suggestions(get_suggestions(&document)),
             }
         }
-        _ => TranslationResult::Valid,
+        _ => TranslationResult::Valid(get_results(&document)),
     }
+}
+
+fn get_results(document: &Html) -> Vec<String> {
+    let selector = Selector::parse(r#"table > tbody > tr > td > a"#).unwrap();
+    let entries = document.select(&selector);
+    entries
+        .into_iter()
+        .enumerate()
+        .take(20)
+        .filter(|(i, _)| i % 2 == 1) // get every other entry
+        .map(|(_, entry)| entry.text().collect::<Vec<_>>().join("")) // get the text
+        .collect()
 }
 
 fn get_suggestions(document: &Html) -> Vec<String> {
