@@ -1,42 +1,35 @@
-#[allow(unused_imports)]
-use reqwest::{header::HeaderMap, header::USER_AGENT, Client};
-use reqwest::{Error, Response};
-// use std::future::Future;
+use chttp::http::StatusCode;
+use chttp::prelude::*;
+use std::io::Error as IOError;
 
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
 
 #[derive(Debug)]
 pub enum RusTurengError {
-    Reqwest(Error),
-    ResponseNotOk(Response),
-}
-
-impl From<Error> for RusTurengError {
-    fn from(err: Error) -> Self {
-        RusTurengError::Reqwest(err)
-    }
-}
-
-impl From<Response> for RusTurengError {
-    fn from(resp: Response) -> Self {
-        RusTurengError::ResponseNotOk(resp)
-    }
+    ChttpBuilder,
+    ChttpResponse,
+    ChttpTextRetrieval(IOError),
+    ResponseNotOk(StatusCode),
 }
 
 pub async fn search_term(term: &str) -> Result<String, RusTurengError> {
     let url: String = format!("{BASE_URL}{term}");
-    let mut header_map: HeaderMap = HeaderMap::new();
-    header_map.insert(USER_AGENT, MY_USER_AGENT.parse().unwrap());
-    get_content(&url, header_map).await
-}
+    let mut response = Request::builder()
+        .method("GET")
+        .uri(url)
+        .header("User-Agent", MY_USER_AGENT)
+        .body(())
+        .map_err(|_| RusTurengError::ChttpBuilder)?
+        .send_async()
+        .await
+        .map_err(|_| RusTurengError::ChttpResponse)?;
 
-async fn get_content(url: &str, header_map: HeaderMap) -> Result<String, RusTurengError> {
-    let response = Client::new().get(url).headers(header_map).send().await?;
-    if response.status().is_success() {
-        let content = response.text().await?;
-        Ok(content)
-    } else {
-        Err(RusTurengError::ResponseNotOk(response))
+    match response.status() {
+        StatusCode::OK => response
+            .text_async()
+            .await
+            .map_err(RusTurengError::ChttpTextRetrieval),
+        other => Err(RusTurengError::ResponseNotOk(other)),
     }
 }
