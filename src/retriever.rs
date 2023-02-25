@@ -1,6 +1,7 @@
 use chttp::http::StatusCode;
 use chttp::prelude::*;
 use std::io::Error as IOError;
+use url::{ParseError, Url};
 
 const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
@@ -14,10 +15,12 @@ pub enum RusTurengError {
 }
 
 pub async fn search_term(term: &str) -> Result<String, RusTurengError> {
-    let url: String = format!("{BASE_URL}{term}");
+    let url = format!("{BASE_URL}{term}");
+    let url = Url::parse(&url).map_err(|err| RusTurengError::UrlParse(err))?;
+
     let mut response = Request::builder()
         .method("GET")
-        .uri(url)
+        .uri(url.as_str())
         .header("User-Agent", MY_USER_AGENT)
         .body(())
         .map_err(|_| RusTurengError::ChttpBuilder)?
