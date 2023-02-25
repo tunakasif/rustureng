@@ -8,8 +8,9 @@ const MY_USER_AGENT: &str = "MyAgent";
 
 #[derive(Debug)]
 pub enum RusTurengError {
-    ChttpBuilder,
-    ChttpResponse,
+    UrlParse(ParseError),
+    ChttpBuilder(chttp::http::Error),
+    ChttpResponse(chttp::Error),
     ChttpTextRetrieval(IOError),
     ResponseNotOk(StatusCode),
 }
@@ -23,10 +24,10 @@ pub async fn search_term(term: &str) -> Result<String, RusTurengError> {
         .uri(url.as_str())
         .header("User-Agent", MY_USER_AGENT)
         .body(())
-        .map_err(|_| RusTurengError::ChttpBuilder)?
+        .map_err(|err| RusTurengError::ChttpBuilder(err))?
         .send_async()
         .await
-        .map_err(|_| RusTurengError::ChttpResponse)?;
+        .map_err(|err| RusTurengError::ChttpResponse(err))?;
 
     match response.status() {
         StatusCode::OK => response
