@@ -1,12 +1,12 @@
 use rustureng::parser::parse_html_content;
-use rustureng::retriever::{self, RusTurengError};
+use rustureng::retriever::{self, RetrieverError};
 use std::{env, io::Write};
 
 const WORD: &str = "telefon";
 const WRITE_TO_FILE: bool = false;
 
 #[tokio::main]
-async fn main() -> Result<(), RusTurengError> {
+async fn main() -> Result<(), RetrieverError> {
     let args: Vec<String> = env::args().collect();
     let term = match args.len() {
         1 => WORD.to_string(),

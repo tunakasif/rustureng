@@ -7,7 +7,7 @@ const BASE_URL: &str = "https://tureng.com/en/turkish-english/";
 const MY_USER_AGENT: &str = "MyAgent";
 
 #[derive(Debug)]
-pub enum RusTurengError {
+pub enum RetrieverError {
     UrlParse(ParseError),
     ChttpBuilder(chttp::http::Error),
     ChttpResponse(chttp::Error),
@@ -15,25 +15,25 @@ pub enum RusTurengError {
     ResponseNotOk(StatusCode),
 }
 
-pub async fn search_term(term: &str) -> Result<String, RusTurengError> {
+pub async fn search_term(term: &str) -> Result<String, RetrieverError> {
     let url = format!("{BASE_URL}{term}");
-    let url = Url::parse(&url).map_err(|err| RusTurengError::UrlParse(err))?;
+    let url = Url::parse(&url).map_err(|err| RetrieverError::UrlParse(err))?;
 
     let mut response = Request::builder()
         .method("GET")
         .uri(url.as_str())
         .header("User-Agent", MY_USER_AGENT)
         .body(())
-        .map_err(|err| RusTurengError::ChttpBuilder(err))?
+        .map_err(|err| RetrieverError::ChttpBuilder(err))?
         .send_async()
         .await
-        .map_err(|err| RusTurengError::ChttpResponse(err))?;
+        .map_err(|err| RetrieverError::ChttpResponse(err))?;
 
     match response.status() {
         StatusCode::OK => response
             .text_async()
             .await
-            .map_err(RusTurengError::ChttpTextRetrieval),
-        other => Err(RusTurengError::ResponseNotOk(other)),
+            .map_err(RetrieverError::ChttpTextRetrieval),
+        other => Err(RetrieverError::ResponseNotOk(other)),
     }
 }
