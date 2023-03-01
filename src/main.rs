@@ -1,5 +1,6 @@
 use rustureng::parser::parse_html_content;
 use rustureng::retriever::{self, RetrieverError};
+// use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
 use std::{env, io::Write};
 
 const WORD: &str = "telefon";
