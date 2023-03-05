@@ -1,5 +1,5 @@
-use chttp::http::StatusCode;
-use chttp::prelude::*;
+use isahc::{http::Error as IsachHttpError, Error as IsahcError};
+use isahc::{http::StatusCode, prelude::*, Request};
 use std::io::Error as IOError;
 use url::{ParseError, Url};
 
@@ -9,9 +9,9 @@ const MY_USER_AGENT: &str = "MyAgent";
 #[derive(Debug)]
 pub enum RetrieverError {
     UrlParse(ParseError),
-    ChttpBuilder(chttp::http::Error),
-    ChttpResponse(chttp::Error),
-    ChttpTextRetrieval(IOError),
+    IsahcBuilder(IsachHttpError),
+    IsahcResponse(IsahcError),
+    IsahcTextRetrieval(IOError),
     ResponseNotOk(StatusCode),
 }
 
@@ -24,16 +24,16 @@ pub async fn search_term(term: &str) -> Result<String, RetrieverError> {
         .uri(url.as_str())
         .header("User-Agent", MY_USER_AGENT)
         .body(())
-        .map_err(RetrieverError::ChttpBuilder)?
+        .map_err(RetrieverError::IsahcBuilder)?
         .send_async()
         .await
-        .map_err(RetrieverError::ChttpResponse)?;
+        .map_err(RetrieverError::IsahcResponse)?;
 
     match response.status() {
         StatusCode::OK => response
-            .text_async()
+            .text()
             .await
-            .map_err(RetrieverError::ChttpTextRetrieval),
+            .map_err(RetrieverError::IsahcTextRetrieval),
         other => Err(RetrieverError::ResponseNotOk(other)),
     }
 }
