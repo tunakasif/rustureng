@@ -8,7 +8,7 @@ const WRITE_TO_FILE: bool = false;
 
 #[tokio::main]
 async fn main() -> Result<(), RetrieverError> {
-    let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().map(|x| x.to_lowercase()).collect();
     let term = match args.len() {
         1 => WORD.to_string(),
         _ => args[1..].join(" "),
