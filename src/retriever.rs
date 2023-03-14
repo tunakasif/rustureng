@@ -1,5 +1,4 @@
-use isahc::{http::Error as IsachHttpError, Error as IsahcError};
-use isahc::{http::StatusCode, prelude::*, Request};
+use isahc::{http::StatusCode, prelude::*, Error as IsahcError, HttpClient};
 use std::io::Error as IOError;
 use url::{ParseError, Url};
 
@@ -9,7 +8,7 @@ const MY_USER_AGENT: &str = "MyAgent";
 #[derive(Debug)]
 pub enum RetrieverError {
     UrlParse(ParseError),
-    IsahcBuilder(IsachHttpError),
+    IsahcBuilder(IsahcError),
     IsahcResponse(IsahcError),
     IsahcTextRetrieval(IOError),
     ResponseNotOk(StatusCode),
@@ -19,13 +18,13 @@ pub async fn search_term(term: &str) -> Result<String, RetrieverError> {
     let url = format!("{BASE_URL}{term}");
     let url = Url::parse(&url).map_err(RetrieverError::UrlParse)?;
 
-    let mut response = Request::builder()
-        .method("GET")
-        .uri(url.as_str())
-        .header("User-Agent", MY_USER_AGENT)
-        .body(())
-        .map_err(RetrieverError::IsahcBuilder)?
-        .send_async()
+    let client = HttpClient::builder()
+        .default_header("User-Agent", MY_USER_AGENT)
+        .build()
+        .map_err(RetrieverError::IsahcBuilder)?;
+
+    let mut response = client
+        .get_async(url.as_str())
         .await
         .map_err(RetrieverError::IsahcResponse)?;
 
