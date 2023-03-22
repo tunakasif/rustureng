@@ -21,12 +21,13 @@ async fn main() -> Result<(), RetrieverError> {
     }
 
     let translation_result = parse(&content).await;
-    let results_of_first_table = translation_result[0]
-        .iter()
-        .map(|x| x.split_whitespace().collect::<Vec<_>>().join(" "))
-        .collect::<Vec<_>>();
-
-    println!("{:#?}", results_of_first_table);
+    for res in translation_result.iter() {
+        let results_of_first_table = res
+            .iter()
+            .map(|x| x.split_whitespace().collect::<Vec<_>>().join(" "))
+            .collect::<Vec<_>>();
+        println!("{:#?}\n", results_of_first_table);
+    }
     Ok(())
 }
 
