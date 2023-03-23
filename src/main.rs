@@ -36,9 +36,10 @@ async fn parse(content: &str) -> Vec<Vec<String>> {
     let table_selector = Selector::parse("table").unwrap();
     let tr_selector = Selector::parse("tr").unwrap();
     let td_with_a_selector = Selector::parse("td > a").unwrap();
+    let h1_selector = Selector::parse("h1").unwrap();
 
-    let tables = document.select(&table_selector);
-    tables
+    let translation_result = document
+        .select(&table_selector)
         .map(|table| {
             table
                 .select(&tr_selector)
@@ -46,7 +47,26 @@ async fn parse(content: &str) -> Vec<Vec<String>> {
                 .map(|tr| tr.text().collect::<Vec<_>>().join(""))
                 .collect::<Vec<String>>()
         })
-        .collect::<Vec<_>>()
+        .collect::<Vec<_>>();
+
+    if translation_result.is_empty() {
+        let term_not_found_h1_exists = document.select(&h1_selector).any(|h1| {
+            "term not found" == h1.text().collect::<Vec<_>>().join("").trim().to_lowercase()
+        });
+
+        match term_not_found_h1_exists {
+            true => {
+                println!("Term not found");
+                vec![]
+            }
+            _ => {
+                println!("Suggestions");
+                vec![]
+            }
+        }
+    } else {
+        translation_result
+    }
 }
 
 async fn save_string_to_file(file_name: &str, content: &str) {
