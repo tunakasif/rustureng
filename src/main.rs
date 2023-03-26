@@ -22,7 +22,11 @@ async fn main() -> Result<(), RetrieverError> {
     let translation_result = parse_html_content(&content).await;
     match translation_result {
         TranslationResult::Valid(results) => {
-            println!("{:#?}", results);
+            for result in results {
+                for entry in result {
+                    println!("{}", entry);
+                }
+            }
         }
         TranslationResult::Suggestions(suggestions) => {
             println!("{:#?}", suggestions);

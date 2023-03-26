@@ -1,10 +1,51 @@
 use scraper::{Html, Selector};
+use std::fmt;
 
 #[derive(Debug)]
 pub enum TranslationResult {
-    Valid(Vec<Vec<Vec<String>>>),
+    Valid(Vec<Vec<ValidTranslationEntry>>),
     Suggestions(Vec<String>),
     TermNotFound,
+}
+
+#[derive(Debug, Default)]
+pub struct ValidTranslationEntry {
+    pub index: usize,
+    pub category: String,
+    pub from: String,
+    pub to: String,
+    pub parts_of_speech: Option<String>,
+}
+
+impl fmt::Display for ValidTranslationEntry {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let base = format!(
+            "{}. {}: {} -> {}",
+            self.index, self.category, self.from, self.to
+        );
+        match self.parts_of_speech {
+            Some(ref pos) => write!(f, "{} ({})", base, pos),
+            None => write!(f, "{}", base),
+        }
+    }
+}
+
+impl ValidTranslationEntry {
+    pub fn new(
+        index: usize,
+        category: String,
+        from: String,
+        to: String,
+        parts_of_speech: Option<String>,
+    ) -> Self {
+        Self {
+            index,
+            category,
+            from,
+            to,
+            parts_of_speech,
+        }
+    }
 }
 
 pub async fn parse_html_content(content: &str) -> TranslationResult {
@@ -26,7 +67,7 @@ pub async fn parse_html_content(content: &str) -> TranslationResult {
     }
 }
 
-async fn get_results(document: &Html) -> Vec<Vec<Vec<String>>> {
+async fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
     let table_selector = Selector::parse("table").unwrap();
     let tr_selector = Selector::parse("tr").unwrap();
     let td_selector = Selector::parse("td").unwrap();
@@ -39,11 +80,26 @@ async fn get_results(document: &Html) -> Vec<Vec<Vec<String>>> {
                 .select(&tr_selector)
                 .filter(|tr| tr.select(&td_with_a_selector).count() > 0)
                 .map(|tr| {
-                    tr.select(&td_selector)
+                    let mut entry_pos: Option<String> = None;
+                    let single_result_vec = tr
+                        .select(&td_selector)
                         .map(|td| get_result_from_td(&td))
-                        .map(|x| x.trim().to_string())
+                        .map(|(word, pos)| {
+                            if let Some(p) = pos {
+                                entry_pos = Some(p.trim().to_owned());
+                            }
+                            word.trim().to_string()
+                        })
                         .filter(|td| !td.is_empty())
-                        .collect::<Vec<_>>()
+                        .collect::<Vec<_>>();
+
+                    ValidTranslationEntry::new(
+                        single_result_vec[0].parse::<usize>().unwrap(),
+                        single_result_vec[1].to_owned(),
+                        single_result_vec[2].to_owned(),
+                        single_result_vec[3].to_owned(),
+                        entry_pos,
+                    )
                 })
                 .collect::<Vec<_>>()
         })
@@ -58,7 +114,7 @@ async fn get_suggestions(document: &Html) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn get_result_from_td(td: &scraper::ElementRef) -> String {
+fn get_result_from_td(td: &scraper::ElementRef) -> (String, Option<String>) {
     let i_selector = Selector::parse("i").unwrap();
     let a_selector = Selector::parse("a").unwrap();
     let inner_html = td.inner_html();
@@ -84,8 +140,8 @@ fn get_result_from_td(td: &scraper::ElementRef) -> String {
             .text()
             .collect::<Vec<_>>()
             .join("");
-        vec![word, pos].join(", ")
+        (word, Some(pos))
     } else {
-        td.text().collect::<Vec<_>>().join("")
+        (td.text().collect::<Vec<_>>().join(""), None)
     }
 }
