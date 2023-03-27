@@ -50,7 +50,7 @@ impl ValidTranslationEntry {
 
 pub async fn parse_html_content(content: &str) -> TranslationResult {
     let document = Html::parse_document(content);
-    let translation_result = get_results(&document).await;
+    let translation_result = get_results(&document);
 
     if translation_result.is_empty() {
         let h1_selector = Selector::parse("h1").unwrap();
@@ -60,14 +60,14 @@ pub async fn parse_html_content(content: &str) -> TranslationResult {
 
         match term_not_found_h1_exists {
             true => TranslationResult::TermNotFound,
-            _ => TranslationResult::Suggestions(get_suggestions(&document).await),
+            _ => TranslationResult::Suggestions(get_suggestions(&document)),
         }
     } else {
         TranslationResult::Valid(translation_result)
     }
 }
 
-async fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
+fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
     let table_selector = Selector::parse("table").unwrap();
     let tr_selector = Selector::parse("tr").unwrap();
     let td_selector = Selector::parse("td").unwrap();
@@ -106,7 +106,7 @@ async fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
         .collect::<Vec<_>>()
 }
 
-async fn get_suggestions(document: &Html) -> Vec<String> {
+fn get_suggestions(document: &Html) -> Vec<String> {
     let selector = Selector::parse("ul.suggestion-list > li > a").unwrap();
     document
         .select(&selector)
