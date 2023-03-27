@@ -72,6 +72,8 @@ fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
     let tr_selector = Selector::parse("tr").unwrap();
     let td_selector = Selector::parse("td").unwrap();
     let td_with_a_selector = Selector::parse("td > a").unwrap();
+    let i_selector = Selector::parse("i").unwrap();
+    let a_selector = Selector::parse("a").unwrap();
 
     document
         .select(&table_selector)
@@ -79,28 +81,7 @@ fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
             table
                 .select(&tr_selector)
                 .filter(|tr| tr.select(&td_with_a_selector).count() > 0)
-                .map(|tr| {
-                    let mut entry_pos: Option<String> = None;
-                    let single_result_vec = tr
-                        .select(&td_selector)
-                        .map(|td| get_result_from_td(&td))
-                        .map(|(word, pos)| {
-                            if let Some(p) = pos {
-                                entry_pos = Some(p.trim().to_owned());
-                            }
-                            word.trim().to_string()
-                        })
-                        .filter(|td| !td.is_empty())
-                        .collect::<Vec<_>>();
-
-                    ValidTranslationEntry::new(
-                        single_result_vec[0].parse::<usize>().unwrap(),
-                        single_result_vec[1].to_owned(),
-                        single_result_vec[2].to_owned(),
-                        single_result_vec[3].to_owned(),
-                        entry_pos,
-                    )
-                })
+                .map(|tr| get_result_from_tr(&tr, &td_selector, &i_selector, &a_selector))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>()
@@ -114,14 +95,43 @@ fn get_suggestions(document: &Html) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn get_result_from_td(td: &scraper::ElementRef) -> (String, Option<String>) {
-    let i_selector = Selector::parse("i").unwrap();
-    let a_selector = Selector::parse("a").unwrap();
-    let inner_html = td.inner_html();
+fn get_result_from_tr(
+    tr: &scraper::ElementRef,
+    td_selector: &Selector,
+    i_selector: &Selector,
+    a_selector: &Selector,
+) -> ValidTranslationEntry {
+    let mut entry_pos: Option<String> = None;
+    let single_result_vec = tr
+        .select(td_selector)
+        .map(|td| get_result_from_td(&td, i_selector, a_selector))
+        .map(|(word, pos)| {
+            if let Some(p) = pos {
+                entry_pos = Some(p.trim().to_owned());
+            }
+            word.trim().to_string()
+        })
+        .filter(|td| !td.is_empty())
+        .collect::<Vec<_>>();
 
+    ValidTranslationEntry::new(
+        single_result_vec[0].parse::<usize>().unwrap(),
+        single_result_vec[1].to_owned(),
+        single_result_vec[2].to_owned(),
+        single_result_vec[3].to_owned(),
+        entry_pos,
+    )
+}
+
+fn get_result_from_td(
+    td: &scraper::ElementRef,
+    i_selector: &Selector,
+    a_selector: &Selector,
+) -> (String, Option<String>) {
+    let inner_html = td.inner_html();
     if inner_html.contains("<i>") {
         let pos = td
-            .select(&i_selector)
+            .select(i_selector)
             .next()
             .unwrap()
             .text()
@@ -134,7 +144,7 @@ fn get_result_from_td(td: &scraper::ElementRef) -> (String, Option<String>) {
         };
 
         let word = Html::parse_fragment(&inner_html_without_pos)
-            .select(&a_selector)
+            .select(a_selector)
             .next()
             .unwrap()
             .text()
