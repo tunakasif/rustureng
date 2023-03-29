@@ -5,6 +5,7 @@ use std::{env, io::Write};
 
 const WORD: &str = "test";
 const WRITE_TO_FILE: bool = false;
+const QUIET: bool = true;
 
 #[tokio::main]
 async fn main() -> Result<(), RetrieverError> {
@@ -20,19 +21,21 @@ async fn main() -> Result<(), RetrieverError> {
     }
 
     let translation_result = parse_html_content(&content).await;
-    match translation_result {
-        TranslationResult::Valid(results) => {
-            for result in results {
-                for entry in result {
-                    println!("{}", entry);
+    if !QUIET {
+        match translation_result {
+            TranslationResult::Valid(results) => {
+                for result in results {
+                    for entry in result {
+                        println!("{}", entry);
+                    }
                 }
             }
-        }
-        TranslationResult::Suggestions(suggestions) => {
-            println!("{:#?}", suggestions);
-        }
-        TranslationResult::TermNotFound => {
-            println!("Term not found");
+            TranslationResult::Suggestions(suggestions) => {
+                println!("{:#?}", suggestions);
+            }
+            TranslationResult::TermNotFound => {
+                println!("Term not found");
+            }
         }
     }
     Ok(())
