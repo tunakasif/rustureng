@@ -5,7 +5,7 @@ use std::{env, io::Write};
 
 const WORD: &str = "test";
 const WRITE_TO_FILE: bool = false;
-const QUIET: bool = true;
+const QUIET: bool = false;
 
 #[tokio::main]
 async fn main() -> Result<(), RetrieverError> {
