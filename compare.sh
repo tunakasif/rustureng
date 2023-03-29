@@ -9,6 +9,9 @@ fi
 args=("$@")
 search_term=$(printf "%s " "${args[@]}");
 search_term=${search_term%?};
+if [ -z "$search_term" ]; then
+    search_term="test";
+fi
 search_term_url=${search_term// /%20};
 
 # parameters
