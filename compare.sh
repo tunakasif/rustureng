@@ -16,8 +16,8 @@ search_term_url=${search_term// /%20};
 
 # parameters
 user_agent='MyAgent';
-warmup_count=10;
-min_runs=50;
+warmup_count=5;
+min_runs=10;
 
 # run hyperfine compare
 cargo build --release || exit;
