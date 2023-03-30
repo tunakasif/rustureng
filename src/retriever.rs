@@ -1,4 +1,4 @@
-use isahc::{http::StatusCode, prelude::*, Error as IsahcError, HttpClient};
+use isahc::{http::StatusCode, prelude::AsyncReadResponseExt, Error as IsahcError, HttpClient};
 use std::io::Error as IOError;
 use url::{ParseError, Url};
 

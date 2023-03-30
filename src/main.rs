@@ -1,10 +1,11 @@
-use rustureng::parser::parse_html_content;
+use rustureng::parser::{parse_html_content, TranslationResult};
 use rustureng::retriever::{self, RetrieverError};
 // use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
 use std::{env, io::Write};
 
-const WORD: &str = "telefon";
+const WORD: &str = "test";
 const WRITE_TO_FILE: bool = false;
+const QUIET: bool = false;
 
 #[tokio::main]
 async fn main() -> Result<(), RetrieverError> {
@@ -18,8 +19,25 @@ async fn main() -> Result<(), RetrieverError> {
     if WRITE_TO_FILE {
         save_string_to_file("content.html", &content).await;
     }
+
     let translation_result = parse_html_content(&content).await;
-    println!("{translation_result:#?}");
+    if !QUIET {
+        match translation_result {
+            TranslationResult::Valid(results) => {
+                for result in results {
+                    for entry in result {
+                        println!("{}", entry);
+                    }
+                }
+            }
+            TranslationResult::Suggestions(suggestions) => {
+                println!("{:#?}", suggestions);
+            }
+            TranslationResult::TermNotFound => {
+                println!("Term not found");
+            }
+        }
+    }
     Ok(())
 }
 
