@@ -155,3 +155,44 @@ fn get_result_from_td(
         (td.text().collect::<Vec<_>>().join(""), None)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const SAMPLE_TABLE_STR: &str = r#"
+        <h1>test</h1>
+        <table class="table table-hover table-striped searchResultsTable" id="englishResultsTable">
+            <tbody>
+                <tr>
+                    <td class="rc0 hidden-xs">1</td>
+                    <td class="hidden-xs">Common Usage</td>
+                    <td class="tr ts" lang="tr"><a href="/en/turkish-english/kedi">kedi</a></td>
+                    <td class="en tm" lang="en"><a href="/en/turkish-english/cat">cat</a><i>n. </i></td>
+                    <td class="rc4 hidden-xs"><span class="glyphicon glyphicon-option-horizontal"></span></td>
+                </tr>
+            </tbody>
+        </table>
+        "#;
+
+    #[test]
+    fn test_get_result_from_tr() {
+        let table_tr_selector = Selector::parse("table").unwrap();
+        let tr_selector = Selector::parse("tr").unwrap();
+        let td_selector = Selector::parse("td").unwrap();
+        let i_selector = Selector::parse("i").unwrap();
+        let a_selector = Selector::parse("a").unwrap();
+
+        let table_html = Html::parse_document(SAMPLE_TABLE_STR);
+        let sample_tr = table_html
+            .select(&table_tr_selector)
+            .map(|table| table.select(&tr_selector).next().unwrap())
+            .next()
+            .unwrap();
+
+        let entry = get_result_from_tr(&sample_tr, &td_selector, &i_selector, &a_selector);
+        assert_eq!(entry.index, 1);
+        assert_eq!(entry.from, "kedi".to_string());
+        assert_eq!(entry.to, "cat".to_string());
+        assert_eq!(entry.parts_of_speech, Some("n.".to_string()));
+    }
+}
