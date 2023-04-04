@@ -28,6 +28,7 @@ async fn main() -> Result<(), RetrieverError> {
                     for entry in result {
                         println!("{}", entry);
                     }
+                    println!();
                 }
             }
             TranslationResult::Suggestions(suggestions) => {
