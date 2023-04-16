@@ -1,48 +1,82 @@
 use rustureng::parser::{parse_html_content, TranslationResult};
 use rustureng::retriever::{self, RetrieverError};
 // use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
-use std::{env, io::Write};
+use dialoguer::{theme::ColorfulTheme, Select};
+use std::env;
 
 const WORD: &str = "test";
-const WRITE_TO_FILE: bool = false;
-const QUIET: bool = false;
+const INTERACTIVE: bool = true;
 
 #[tokio::main]
 async fn main() -> Result<(), RetrieverError> {
-    let args: Vec<String> = env::args().map(|x| x.to_lowercase()).collect();
-    let term = match args.len() {
-        1 => WORD.to_string(),
-        _ => args[1..].join(" "),
-    };
-
-    let content = retriever::search_term(&term).await?;
-    if WRITE_TO_FILE {
-        save_string_to_file("content.html", &content).await;
+    let term = get_search_term();
+    let mut translation_result = query(&term).await?;
+    if INTERACTIVE {
+        translation_result = get_valid_result_from_suggestions(translation_result).await;
     }
-
-    let translation_result = parse_html_content(&content).await;
-    if !QUIET {
-        match translation_result {
-            TranslationResult::Valid(results) => {
-                for result in results {
-                    for entry in result {
-                        println!("{}", entry);
-                    }
-                    println!();
-                }
-            }
-            TranslationResult::Suggestions(suggestions) => {
-                println!("{:#?}", suggestions);
-            }
-            TranslationResult::TermNotFound => {
-                println!("Term not found");
-            }
-        }
-    }
+    display_translation(&translation_result);
     Ok(())
 }
 
-async fn save_string_to_file(file_name: &str, content: &str) {
-    let mut file = std::fs::File::create(file_name).unwrap();
-    file.write_all(content.as_bytes()).unwrap();
+fn get_search_term() -> String {
+    let args: Vec<String> = env::args().map(|x| x.to_lowercase()).collect();
+    match args.len() {
+        1 => WORD.to_string(),
+        _ => args[1..].join(" "),
+    }
+}
+
+async fn query(term: &str) -> Result<TranslationResult, RetrieverError> {
+    let content = retriever::search_term(&term).await?;
+    Ok(parse_html_content(&content).await)
+}
+
+async fn get_valid_result_from_suggestions(result: TranslationResult) -> TranslationResult {
+    if let TranslationResult::Suggestions(suggestions) = result {
+        if let Some(term) = choose_from_suggestions(&suggestions) {
+            query(&term)
+                .await
+                .unwrap_or(TranslationResult::Suggestions(suggestions))
+        } else {
+            TranslationResult::Suggestions(suggestions)
+        }
+    } else {
+        result
+    }
+}
+
+fn choose_from_suggestions(suggestions: &[String]) -> Option<String> {
+    let valid_selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Maybe the correct one is: ")
+        .default(0)
+        .items(&suggestions[..])
+        .interact_opt()
+        .unwrap();
+
+    match valid_selection {
+        Some(idx) => Some(suggestions[idx].to_string()),
+        _ => None,
+    }
+}
+
+fn display_translation(translation_result: &TranslationResult) {
+    match translation_result {
+        TranslationResult::Valid(results) => {
+            for result in results {
+                for entry in result {
+                    println!("{}", entry);
+                }
+                println!();
+            }
+        }
+        TranslationResult::Suggestions(suggestions) => {
+            println!("Suggestions:");
+            for (i, s) in suggestions.iter().enumerate() {
+                println!("{:2}. {}", i + 1, s);
+            }
+        }
+        TranslationResult::TermNotFound => {
+            println!("Term not found");
+        }
+    }
 }
