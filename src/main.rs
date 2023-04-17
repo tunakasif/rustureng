@@ -1,7 +1,7 @@
+use dialoguer::{theme::ColorfulTheme, Select};
 use rustureng::parser::{parse_html_content, TranslationResult};
 use rustureng::retriever::{self, RetrieverError};
 // use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
-use dialoguer::{theme::ColorfulTheme, Select};
 use std::env;
 
 const WORD: &str = "test";
@@ -14,7 +14,7 @@ async fn main() -> Result<(), RetrieverError> {
     if INTERACTIVE {
         translation_result = get_valid_result_from_suggestions(translation_result).await;
     }
-    display_translation(&translation_result);
+    translation_result.display();
     Ok(())
 }
 
@@ -56,27 +56,5 @@ fn choose_from_suggestions(suggestions: &[String]) -> Option<String> {
     match valid_selection {
         Some(idx) => Some(suggestions[idx].to_string()),
         _ => None,
-    }
-}
-
-fn display_translation(translation_result: &TranslationResult) {
-    match translation_result {
-        TranslationResult::Valid(results) => {
-            for result in results {
-                for entry in result {
-                    println!("{}", entry);
-                }
-                println!();
-            }
-        }
-        TranslationResult::Suggestions(suggestions) => {
-            println!("Suggestions:");
-            for (i, s) in suggestions.iter().enumerate() {
-                println!("{:2}. {}", i + 1, s);
-            }
-        }
-        TranslationResult::TermNotFound => {
-            println!("Term not found");
-        }
     }
 }

@@ -8,6 +8,30 @@ pub enum TranslationResult {
     TermNotFound,
 }
 
+impl TranslationResult {
+    pub fn display(&self) {
+        match self {
+            TranslationResult::Valid(results) => {
+                for result in results {
+                    for entry in result {
+                        println!("{}", entry);
+                    }
+                    println!();
+                }
+            }
+            TranslationResult::Suggestions(suggestions) => {
+                println!("Suggestions:");
+                for (i, s) in suggestions.iter().enumerate() {
+                    println!("{:2}. {}", i + 1, s);
+                }
+            }
+            TranslationResult::TermNotFound => {
+                println!("Term not found");
+            }
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct ValidTranslationEntry {
     pub index: usize,
