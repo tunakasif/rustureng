@@ -20,7 +20,7 @@ pub struct ValidTranslationEntry {
 impl fmt::Display for ValidTranslationEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let base = format!(
-            "{}. {}: {} -> {}",
+            "{:3}. {}: {} -> {}",
             self.index, self.category, self.from, self.to
         );
         match self.parts_of_speech {
