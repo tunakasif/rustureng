@@ -27,7 +27,7 @@ fn get_search_term() -> String {
 }
 
 async fn query(term: &str) -> Result<TranslationResult, RetrieverError> {
-    let content = retriever::search_term(&term).await?;
+    let content = retriever::search_term(term).await?;
     Ok(parse_html_content(&content).await)
 }
 
@@ -49,12 +49,9 @@ fn choose_from_suggestions(suggestions: &[String]) -> Option<String> {
     let valid_selection = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Maybe the correct one is: ")
         .default(0)
-        .items(&suggestions[..])
+        .items(suggestions)
         .interact_opt()
         .unwrap();
 
-    match valid_selection {
-        Some(idx) => Some(suggestions[idx].to_string()),
-        _ => None,
-    }
+    valid_selection.map(|idx| suggestions[idx].to_string())
 }
