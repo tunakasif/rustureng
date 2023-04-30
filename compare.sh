@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# if hyperfine command is not installed exit
-if ! command -v hyperfine &> /dev/null; then
-    echo "hyperfine command could not be found";
-    exit;
-fi
+# if following commands are not installed exit
+commands_list=(hyperfine cargo curl deno);
+for cmd in "${commands_list[@]}"; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "$cmd command could not be found";
+        exit;
+    fi
+done
 
 args=("$@")
 search_term=$(printf "%s " "${args[@]}");
@@ -23,5 +26,6 @@ min_runs=10;
 cargo build --release || exit;
 rustureng_command="./target/release/rustureng $search_term";
 curl_command="curl -s -o /dev/null 'https://tureng.com/en/turkish-english/$search_term_url' -H 'User-Agent: $user_agent'";
-hyperfine "$curl_command" "$rustureng_command" --warmup $warmup_count --min-runs $min_runs
+fetch_command="deno run --allow-net fetch.ts $search_term";
+hyperfine "$curl_command" "$fetch_command" "$rustureng_command" --warmup $warmup_count --min-runs $min_runs
 
