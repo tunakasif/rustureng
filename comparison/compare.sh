@@ -24,7 +24,7 @@ min_runs=10;
 
 # run hyperfine compare
 cargo build --release || exit;
-rustureng_command="./target/release/rustureng $search_term";
+rustureng_command="../target/release/rustureng $search_term";
 curl_command="curl -s -o /dev/null 'https://tureng.com/en/turkish-english/$search_term_url' -H 'User-Agent: $user_agent'";
 fetch_command="deno run --allow-net fetch.ts $search_term";
 hyperfine "$curl_command" "$fetch_command" "$rustureng_command" --warmup $warmup_count --min-runs $min_runs
