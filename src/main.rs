@@ -1,7 +1,7 @@
 use dialoguer::{theme::ColorfulTheme, Select};
 use rustureng::parser::{parse_html_content, TranslationResult};
-use rustureng::retriever::{self, RetrieverError};
-// use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
+// use rustureng::retriever::{self, RetrieverError};
+use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
 use std::env;
 
 const WORD: &str = "test";
