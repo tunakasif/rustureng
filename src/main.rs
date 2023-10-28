@@ -1,9 +1,15 @@
 use dialoguer::{theme::ColorfulTheme, Select};
 use rustureng::parser::{parse_html_content, TranslationResult};
-// use rustureng::retriever::{self, RetrieverError};
-// use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
-use rustureng::retriever_ureq::{self as retriever, RetrieverError};
 use std::env;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "isahc")] {
+        use rustureng::retriever_isahc::{self, RetrieverError};
+    } else if #[cfg(feature = "reqwest")] {
+        use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
+    } else {
+        use rustureng::retriever_ureq::{self as retriever, RetrieverError};
+    }
+}
 
 const WORD: &str = "test";
 const INTERACTIVE: bool = true;
