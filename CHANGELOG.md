@@ -1,3 +1,21 @@
+## 0.3.0 (2023-10-28)
+
+### Feat
+
+- add `features` for `http` client selection
+- **retriever**: add `ureq` as http-client
+
+### Fix
+
+- `isahc` import
+- **retriever**: convert to `reqwest`
+- **compare**: executable path
+
+### Refactor
+
+- rename base `retriever.rs` with `isahc`
+- **compare**: move related files to their dir
+
 ## 0.2.0 (2023-04-23)
 
 ### Feat
