@@ -3,7 +3,7 @@ use rustureng::parser::{parse_html_content, TranslationResult};
 use std::env;
 cfg_if::cfg_if! {
     if #[cfg(feature = "isahc")] {
-        use rustureng::retriever_isahc::{self, RetrieverError};
+        use rustureng::retriever_isahc::{self as retriever, RetrieverError};
     } else if #[cfg(feature = "reqwest")] {
         use rustureng::retriever_reqwest::{self as retriever, RetrieverError};
     } else {
