@@ -105,7 +105,7 @@ fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
             table
                 .select(&tr_selector)
                 .filter(|tr| tr.select(&td_with_a_selector).count() > 0)
-                .map(|tr| get_result_from_tr(&tr, &td_selector, &i_selector, &a_selector))
+                .filter_map(|tr| get_result_from_tr(&tr, &td_selector, &i_selector, &a_selector))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>()
@@ -124,7 +124,7 @@ fn get_result_from_tr(
     td_selector: &Selector,
     i_selector: &Selector,
     a_selector: &Selector,
-) -> ValidTranslationEntry {
+) -> Option<ValidTranslationEntry> {
     let mut entry_pos: Option<String> = None;
     let single_result_vec = tr
         .select(td_selector)
@@ -138,13 +138,16 @@ fn get_result_from_tr(
         .filter(|td| !td.is_empty())
         .collect::<Vec<_>>();
 
-    ValidTranslationEntry::new(
-        single_result_vec[0].parse::<usize>().unwrap(),
-        single_result_vec[1].to_owned(),
-        single_result_vec[2].to_owned(),
-        single_result_vec[3].to_owned(),
-        entry_pos,
-    )
+    match single_result_vec[0].parse::<usize>() {
+        Ok(index) => Some(ValidTranslationEntry::new(
+            index,
+            single_result_vec[1].to_owned(),
+            single_result_vec[2].to_owned(),
+            single_result_vec[3].to_owned(),
+            entry_pos,
+        )),
+        Err(_) => None,
+    }
 }
 
 fn get_result_from_td(
@@ -213,7 +216,7 @@ mod tests {
             .next()
             .unwrap();
 
-        let entry = get_result_from_tr(&sample_tr, &td_selector, &i_selector, &a_selector);
+        let entry = get_result_from_tr(&sample_tr, &td_selector, &i_selector, &a_selector).unwrap();
         assert_eq!(entry.index, 1);
         assert_eq!(entry.from, "kedi".to_string());
         assert_eq!(entry.to, "cat".to_string());
