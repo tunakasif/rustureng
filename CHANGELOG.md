@@ -1,3 +1,9 @@
+## 0.3.1 (2024-10-02)
+
+### Fix
+
+- **parser**: add work-around for new `sentences`
+
 ## 0.3.0 (2023-10-28)
 
 ### Feat
