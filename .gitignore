@@ -1,3 +1,6 @@
+# Nix
+/result-bin
+
 # VS Code
 .vscode/
 
