@@ -1,2 +1,3 @@
 *.sh linguist-documentation
 *.ts linguist-documentation
+Cargo.nix linguist-generated
