@@ -1,8 +1,10 @@
 <!--markdownlint-disable MD013-->
 
-# RusTureng
+# 📖 RusTureng
 
 [![GitHub](https://img.shields.io/github/license/tunakasif/rustureng)](https://github.com/tunakasif/rustureng/blob/main/LICENSE)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/v/release/tunakasif/rustureng?sort=semver)
+![Nix Flake](https://img.shields.io/badge/nix-flake-blue.svg)
 
 _Blazingly fast_ and unnecessarily over-engineered CLI tool for using [tureng.com](https://tureng.com/en/turkish-english), written in _✨Rust✨_. [Tureng](https://tureng.com/en/turkish-english) is a commonly known and highly regarded translation site in Türkiye, famous for its idiomatic translations. [Tureng Multilingual Dictionary](https://tureng.com/en/turkish-english) offers an extensive dictionary to search terms in English, French, German, Spanish, and Turkish. However, in its current form, the implementation targets `<tur-eng>` and `<eng-tur>` translations. Other languages can be used by altering the base URL, although some unwanted side effects or deficient output may occur.
 
