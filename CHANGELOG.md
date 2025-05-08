@@ -1,3 +1,9 @@
+## 0.3.2 (2025-05-08)
+
+### Fix
+
+- **ureq**: update request for breaking changes
+
 ## 0.3.1 (2024-10-02)
 
 ### Fix
