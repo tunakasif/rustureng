@@ -1,3 +1,11 @@
+## 0.3.3 (2025-05-08)
+
+### Fix
+
+- **ci**: revert version bump nix integration
+- **ci**: add missing rust toolchain
+- **build**: correct commitizen bump versioning
+
 ## 0.3.2 (2025-05-08)
 
 ### Fix
