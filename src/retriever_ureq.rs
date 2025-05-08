@@ -7,7 +7,7 @@ const MY_USER_AGENT: &str = "MyAgent";
 pub enum RetrieverError {
     UrlParse(ParseError),
     UreqClient(ureq::Error),
-    UreqTextRetrieval(std::io::Error),
+    UreqTextRetrieval(ureq::Error),
 }
 
 pub async fn search_term(term: &str) -> Result<String, RetrieverError> {
@@ -15,10 +15,11 @@ pub async fn search_term(term: &str) -> Result<String, RetrieverError> {
     let url = Url::parse(&url).map_err(RetrieverError::UrlParse)?;
 
     let body: String = ureq::get(url.as_str())
-        .set("User-Agent", MY_USER_AGENT)
+        .header("User-Agent", MY_USER_AGENT)
         .call()
         .map_err(RetrieverError::UreqClient)?
-        .into_string()
+        .body_mut()
+        .read_to_string()
         .map_err(RetrieverError::UreqTextRetrieval)?;
     Ok(body)
 }
