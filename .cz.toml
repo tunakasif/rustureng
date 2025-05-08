@@ -5,9 +5,9 @@ version_files = [
     "Cargo.toml:^version",
 ]
 pre_bump_hooks = [
-    "cargo generate-lockfile",
+    "cargo generate-lockfile || echo 'cargo does not exist'",
     "sed -i 's/^version = 4/version = 3/' Cargo.lock",
-    "nix run github:cargo2nix/cargo2nix -- -o"
+    "nix run github:cargo2nix/cargo2nix -- -o || echo 'nix does not exist'"
 ]
 version_type = "semver"
 version_provider = "cargo"
