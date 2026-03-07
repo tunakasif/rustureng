@@ -22,7 +22,7 @@ cargo run --release -- <term>
 
 ### Using Nix
 
-The repository provides a [`Cargo.nix`](./Cargo.nix) file generated with [cargo2nix/cargo2nix](https://github.com/cargo2nix/cargo2nix) and [`flake.nix`](./flake.nix) file that can be used to run the program without installing Rust:
+The repository provides a minimal [`flake.nix`](./flake.nix) setup for running the program without installing Rust:
 
 > [!IMPORTANT]
 > Requires [Nix](https://nixos.org/download.html) to be installed with flake support.
@@ -31,7 +31,7 @@ The repository provides a [`Cargo.nix`](./Cargo.nix) file generated with [cargo2
 > First time execution may take a while due to the download of the dependencies.
 
 ```sh
-nix run github:tunakasif/rustureng <term>
+nix run github:tunakasif/rustureng -- <term>
 ```
 
 ## ⚖️ Legality

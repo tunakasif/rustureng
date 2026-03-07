@@ -1,37 +1,60 @@
 {
-  inputs = {
-    flake-utils.follows = "cargo2nix/flake-utils";
-    nixpkgs.follows = "cargo2nix/nixpkgs";
-    rust-overlay.url = "github:oxalica/rust-overlay/stable";
-    cargo2nix = {
-      url = "github:cargo2nix/cargo2nix/release-0.11.0";
-      inputs.rust-overlay.follows = "rust-overlay";
-    };
-  };
-
+  description = "RusTureng CLI";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   outputs =
-    inputs:
-    with inputs;
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ cargo2nix.overlays.default ];
-        };
+    { nixpkgs, ... }:
+    let
+      inherit (nixpkgs) lib;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = lib.genAttrs systems;
 
-        rustPkgs = pkgs.rustBuilder.makePackageSet {
-          rustVersion = "1.86.0";
-          packageFun = import ./Cargo.nix;
-        };
+      mkPackage =
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        pkgs.rustPlatform.buildRustPackage {
+          pname = "rustureng";
+          version = "0.3.4";
 
-      in
-      rec {
-        packages = {
-          # replace rustureng with your package name
-          rustureng = (rustPkgs.workspace.rustureng { });
-          default = packages.rustureng;
+          src = pkgs.lib.cleanSourceWith {
+            src = ./.;
+            filter =
+              path: type:
+              let
+                relPath = pkgs.lib.removePrefix "${toString ./.}/" (toString path);
+              in
+              pkgs.lib.cleanSourceFilter path type
+              && (
+                type == "directory"
+                || builtins.elem relPath [
+                  "Cargo.toml"
+                  "Cargo.lock"
+                ]
+                || pkgs.lib.hasPrefix "src/" relPath
+              );
+          };
+
+          cargoLock.lockFile = ./Cargo.lock;
+          doCheck = false;
+
+          meta = with pkgs.lib; {
+            description = "CLI for looking up Tureng translations";
+            homepage = "https://github.com/tunakasif/rustureng";
+            license = licenses.gpl3Plus;
+            mainProgram = "rustureng";
+            platforms = platforms.unix;
+          };
         };
-      }
-    );
+    in
+    {
+      packages = forAllSystems (system: {
+        default = mkPackage system;
+      });
+    };
 }
