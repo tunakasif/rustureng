@@ -1,7 +1,10 @@
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "$version"
-version_files = ["Cargo.toml:^version"]
+version_files = [
+  "Cargo.toml:^version",
+  "flake.nix:^\\s*version\\s*=",
+]
 version_type = "semver"
 version_provider = "cargo"
 update_changelog_on_bump = true
