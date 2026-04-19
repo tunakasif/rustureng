@@ -1,3 +1,9 @@
+## 0.3.5 (2026-04-19)
+
+### Fix
+
+- **parser**: update suggestions selector
+
 ## 0.3.4 (2025-05-22)
 
 ### Fix

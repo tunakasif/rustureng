@@ -20,7 +20,7 @@
         in
         pkgs.rustPlatform.buildRustPackage {
           pname = "rustureng";
-          version = "0.3.4";
+          version = "0.3.5";
 
           src = pkgs.lib.cleanSourceWith {
             src = ./.;
