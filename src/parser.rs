@@ -112,7 +112,7 @@ fn get_results(document: &Html) -> Vec<Vec<ValidTranslationEntry>> {
 }
 
 fn get_suggestions(document: &Html) -> Vec<String> {
-    let selector = Selector::parse("ul.suggestion-list > li > a").unwrap();
+    let selector = Selector::parse("ol.suggestion-list > li > a").unwrap();
     document
         .select(&selector)
         .map(|li| li.text().collect::<Vec<_>>().join(""))
